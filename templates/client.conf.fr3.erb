@@ -3,7 +3,8 @@ client <%= @shortname %> {
 	<% if @ip6 %>ipv6addr = <%= @cidr6 %><% end %>
 	shortname = <%= @shortname %>
 	secret = "<%= @secret %>"
+	proto = "<%= @proto %>"
 	<% if @virtual_server %>virtual_server = <%= @virtual_server %><% end %>
 	<% if @nastype %>nas_type = <%= @nastype %><% end %>
-	require_message_authenticator = no
+	require_message_authenticator = <%= @require_message_authenticator %>
 }
