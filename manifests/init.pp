@@ -3,6 +3,7 @@ class freeradius (
   $control_socket  = false,
   $max_servers     = '4096',
   $max_requests    = '4096',
+  $proxy_fallback  = false,
   $mysql_support   = false,
   $perl_support    = false,
   $utils_support   = false,
@@ -50,6 +51,8 @@ class freeradius (
   file { [
     "${freeradius::fr_basepath}/certs",
     "${freeradius::fr_basepath}/clients.d",
+    "${freeradius::fr_basepath}/proxy.d",
+    "${freeradius::fr_basepath}/hints.d",
     "${freeradius::fr_basepath}/sites-enabled",
     "${freeradius::fr_basepath}/sites-available",
     "${freeradius::fr_basepath}/instantiate",
@@ -169,6 +172,21 @@ class freeradius (
       ensure => installed,
       name   => $freeradius::fr_wpa_supplicant,
     }
+  }
+
+  if $proxy_fallback {
+    $proxy_fallback_str = 'yes'
+  }
+  else {
+    $proxy_fallback_str = 'no'
+  }
+  file { "${freeradius::fr_basepath}/proxy.d/server.conf":
+    mode    => '0640',
+    owner   => 'root',
+    group   => $freeradius::fr_group,
+    content => template('freeradius/proxy_init.conf.erb'),
+    require => [File["${freeradius::fr_basepath}/proxy.d"], Group[$fr_group]],
+    notify  => Service[$fr_service],
   }
 
   # radiusd always tests its config before restarting the service, to avoid outage. If the config is not valid, the service
@@ -301,6 +319,7 @@ class freeradius (
   file { [
     "${freeradius::fr_basepath}/sites-available/default",
     "${freeradius::fr_basepath}/sites-available/inner-tunnel",
+    "${freeradius::fr_basepath}/proxy.conf",
     "${freeradius::fr_basepath}/clients.conf",
     "${freeradius::fr_basepath}/sql.conf",
   ]:
